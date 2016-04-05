@@ -1,0 +1,8 @@
+start simple server at S:\12_Users\Xiaoming\projects\SmartGeometry2016\Mars-SVN\trunk\RhinoGh
+python -m http.server 8000 (default port)
+
+ssh into pi
+start putty then under name give its ip
+
+to vnc into pi from windows
+start tightvncviewer (after installation)
