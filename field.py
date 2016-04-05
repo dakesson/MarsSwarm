@@ -21,6 +21,10 @@ class Vector:
             self.Y = 0
         return self
     ##rotate vector counter clockwise
+    def normalize(self):
+        totSum = self.X**2 + self.Y**2
+        self.X = self.X / totSum
+        self.X = self.Y / totSum        
     def rotate(self,r):
         self.X = self.X*math.cos(r)-self.Y*math.sin(r)        
         self.Y = self.X*math.sin(r)+self.Y*math.cos(r)        
@@ -31,6 +35,9 @@ class Vector:
         sinang = la.norm(np.cross([self.X,self.Y], [v1.X,v1.Y]))
         return np.arctan2(sinang, cosang)
     
+    def distance(self,b):
+        return math.sqrt(math.pow(self.X-b.X,2)+math.pow(self.Y-b.Y,2))
+        
     def __add__(self,other):
         return Vector(self.X + other.X, self.Y + other.Y)
     
@@ -39,7 +46,7 @@ class Vector:
     
     def __mul__(self, scalar):
         return Point(self.X*scalar, self.Y*scalar)
-    def __div__(self, scalar):
+    def div(self, scalar):
         return Point(self.X/scalar, self.Y/scalar)
     def __len__(self):
         return round(math.sqrt(self.X**2 + self.Y**2))
@@ -54,6 +61,13 @@ class Point:
         return math.sqrt(math.pow(self.X-b.X,2)+math.pow(self.Y-b.Y,2))
     def get(self):
         return (self.X, self.Y)
+    def div(self, scalar):
+        return Point(self.X/scalar, self.Y/scalar)        
+    def __sub__(self,other):
+        return Vector(self.X - other.X, self.Y - other.Y)
+    def __add__(self,other):
+        return Vector(self.X + other.X, self.Y + other.Y)
+        
    
 class SquareGrid:#walls are not used. Simply use elevation to generate cost for moving
     def __init__(self, width, height):
@@ -113,8 +127,8 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             #key = (xy[0],xy[1])
             xy = key[1:-1].split(",")
             keyInGrid = (int(xy[0]),int(xy[1]))
-            if(keyInGrid is in robotGrid):
-                continue
+#            if(keyInGrid is in robotGrid):
+#                continue
             if(elevationJson[key]["e"]>field.distanceMax):#Minimum elevation is 0, the maximum is (field.distanceMax - field.distanceMin)/field.distanceStep
                 self.elevation[keyInGrid] = 0
             elif(elevationJson[key]["e"]<field.distanceMin):
@@ -205,3 +219,6 @@ class Target:
     def __init__(self, c, r):
         self.c = c
         self.r = r
+        
+def vectorDistance(v1,v2):
+    return math.sqrt(math.pow(v1.X-v2.X,2)+math.pow(v1.Y-v2.Y,2))         

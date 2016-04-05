@@ -29,7 +29,7 @@ FIELDHEIGHT = 400
 ROBOTSMAXID = 20#maximum Robot ID, tuio could misread ID patttern and give crazy ID number
 KINECT_IP = "http://192.168.0.101:8000"
 TUIO_IP = "http://192.168.0.105:8000"
-PATH_OUTPUT_FILE = 'D:/PROJECTS/0888_SG16/trunk/RhinoGh/server/apath.html'
+PATH_OUTPUT_FILE = 'C:/temp/temp.txt'
 
 # set up the colors
 
@@ -57,7 +57,7 @@ if(field.simulation):#if in simulation mode, load elevation from image
     field.weightedGrid.getElevationFromImage("elevation_test.png",field)
     field.targetGridElevation.getElevationFromImage("target_test.png",field)
     field.calculateTargetQueue()#update elevation differences
-    for robotCount in range(0,2):
+    for robotCount in range(0,8):
         robots.append(Robot(robotCount,Point(random.randint(0, FIELDWIDTH),random.randint(0, WINDOWHEIGHT)),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
 
 # run the game loop
