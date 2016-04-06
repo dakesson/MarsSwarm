@@ -160,7 +160,7 @@ class Field:
         self.targetQueue = {}
         self.actualFieldSize2DisplayField = 6#translate from screen resolution to actual resolution
         self.simulation = False
-        self.busyTargets = None
+        self.busyTargets = []
         
     def setTarget(self,t):
         self.target = t

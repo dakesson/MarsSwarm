@@ -48,8 +48,30 @@ class Robot:
             if self.isSandloaded:
                 value = -value
             
+            if value <= 0:
+                continue
+            
+            closestPointDistance = 999999.0
+            for busyPoint in self.field.busyTargets:
+                busyDist = busyPoint.distance(targetPoint)
+                
+                if busyDist < closestPointDistance:
+                    closestPointDistance = busyDist 
+                    
+            if closestPointDistance == 0:
+                closestPointDistance = 0.1
+                    
+            
             #Smaller number is better, but needs to be over 0
-            heuristic = distance * value
+
+            h1 = distance/self.field.gridWidth #Distance heuristic
+            h2 = value*100
+            h3 = 10.0 / closestPointDistance
+            
+            print('{0:2f} {1:2f} {2:2f}'.format(h1, h2, h3))
+            #print('h1 (dist) %0.2f h2 (material) %0.2f h3 (crowded) %0.2f' % h1,h2,h3)
+            
+            heuristic = h1 + h2 +h3
             
             if heuristic > 0 and heuristic < bestHeuristic:
                 bestPoint = targetPoint
@@ -58,22 +80,9 @@ class Robot:
             
         if bestPoint == None:
             return None
-
-        print("find target")            
+ 
         
-        self.field.targetQueue.pop((bestPoint.X, bestPoint.Y), None)
-        
-        #Remove neighbours        
-        removeCoords = []
-        for coord, value in self.field.targetQueue.items() :
-            targetPoint = Point(coord[0], coord[1])        
-            distance = targetPoint.distance(bestPoint)
-            if distance < 7:
-                removeCoords.append((targetPoint.X, targetPoint.Y))
-            
-
-        for coord in removeCoords:
-            self.field.targetQueue.pop(coord, None)    
+        self.field.busyTargets.append(bestPoint)
         return (bestPoint.X, bestPoint.Y)
             
             
@@ -279,9 +288,17 @@ class Robot:
                 return False
         #if there is no terrain found or changed, return false(does not change path)
         return False
-        
+      
+    def removeTargetLock(self):
+        #Remove the busyTarget
+        for busyTarget in self.field.busyTargets:
+            if busyTarget.X == self.targetInGrid[0] and busyTarget.Y == self.targetInGrid[1]:
+                self.field.busyTargets.remove(busyTarget)
         
     def digDip(self,radius,depth,digOrDip):#digOrDip, true for dig and false for diposit
+
+        self.removeTargetLock()
+        
         for gridPosition in list(self.weightedGrid.neighbors(self.positionInGrid,radius)):
             if(digOrDip):
                 self.field.weightedGrid.elevation[gridPosition] = max(0,self.weightedGrid.elevation[gridPosition]-depth)
@@ -308,7 +325,8 @@ class Robot:
        
        
         #draw target area
-        pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*10,self.targetInGrid[1]*10),self.field.loadingArea.r,1)
+        radius = self.field.loadingArea.r
+        pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*10+radius*5,self.targetInGrid[1]*10+radius*5),radius,1)
 
        
         #print path of the robot
