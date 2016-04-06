@@ -11,7 +11,8 @@ class Vector:
     def __init__(self, a, b):
         self.X = a
         self.Y = b
-   
+
+
     def unitize(self):
         if(math.pow(self.X,2)+math.pow(self.Y,2)!=0):
             self.X = self.X/math.sqrt(math.pow(self.X,2)+math.pow(self.Y,2))
@@ -45,6 +46,8 @@ class Vector:
         return round(math.sqrt(self.X**2 + self.Y**2))
     def get(self):
         return (self.X, self.Y)
+    def distance(self,b):
+        return math.sqrt(math.pow(self.X-b.X,2)+math.pow(self.Y-b.Y,2))
         
 class Point:
     def __init__(self, a, b):
@@ -127,11 +130,24 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             return abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
             
 
-    def collisionCost(self,inTime,robot):
-        print("ok")
+    def collisionCost(self,inTime,robot, node):
+
         for rob in robot.field.robots:
             if rob != self and len(rob.path) > 0:
-                print("OK")
+                
+                #Where will this robot be in time..
+                robPos = rob.getPositionAfter(inTime)
+                if robPos.X > 0 and robPos.Y > 0:
+
+                    testPos = robot.field.grid2Display(node)
+                    testPos = Vector(testPos[0], testPos[1])
+    
+                    distance = robPos.distance(testPos)
+#                    print(distance)
+                    if distance < 200:
+                        return distance*1000
+                
+                
 
         return 0.0
         
@@ -183,6 +199,9 @@ class Field:
     def grid2Display(self,t):
         (x,y) = t
         return (x*self.gridSize,y*self.gridSize)
+    def display2Grid(self,t):
+        (x,y) = t
+        return (int(x/self.gridSize),int(y/self.gridSize))        
     def gridDistance2ScreenDistance(self,grid1,grid2):
         (grid1X,grid1Y) = grid1
         (grid2X,grid2Y) = grid2

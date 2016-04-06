@@ -93,9 +93,9 @@ class Robot:
         for robot in robots:#check robots in the robots list
             if robot.ID == self.ID:
                 continue
-            elif(robot.position.distance(self.position)<ROBOT_CLOEST_DISTANCE):#if two robots are close to each other, add walls to weightedGrid to avoid collision
+           # elif(robot.position.distance(self.position)<ROBOT_CLOEST_DISTANCE):#if two robots are close to each other, add walls to weightedGrid to avoid collision
                 #self.isRobotPaused = True
-                self.weightedGrid.walls.extend(list(self.weightedGrid.neighbors(robot.positionInGrid,3)))#Need to check that target could also be in the wall
+                #self.weightedGrid.walls.extend(list(self.weightedGrid.neighbors(robot.positionInGrid,3)))#Need to check that target could also be in the wall
 
                 #print("walls at"+str(self.weightedGrid.walls))
                 # if(self.positionInGrid[0] is not robot.positionInGrid[0]):
@@ -105,7 +105,7 @@ class Robot:
                        # self.weightedGrid.walls.append((min(self.positionInGrid[0],robot.positionInGrid[0])+1,y))
                        # print("y "+str((min(self.positionInGrid[0],robot.positionInGrid[0])+1,y)))
                 #print("Robot"+str(robot.ID)+" and Robot"+str(self.ID)+" is close to each other.")
-                self.doesPathRequireUpdate = True
+                #self.doesPathRequireUpdate = True
             #else:#if two robots are not close to each other, remove walls
                 #self.weightedGrid.walls = []
             #if a robot is found within communication range, update each other's map
@@ -115,7 +115,7 @@ class Robot:
                     self.exploredGrid.update(robot.exploredGrid)
                     robot.weightedGrid.elevation.update(self.weightedGrid.elevation)
                     robot.exploredGrid.update(self.exploredGrid)
-                    self.doesPathRequireUpdate = True
+                    #self.doesPathRequireUpdate = True
                     #print("Robot"+str(robot.ID)+" and Robot"+str(self.ID)+" update their maps.")
                 except:
                     print("Robot"+str(robot.ID)+" and Robot"+str(self.ID)+" error updateing maps.")
@@ -310,3 +310,50 @@ class Robot:
         
         #windowSurface.blit(rotatedSurf, rotRect)
         #self.currentOrientation = self.direction
+        
+    def getSpeed(self):
+        #Speed the robot moves in one move
+        return math.sqrt(self.direction.X**2 + self.direction.Y**2)
+        
+    def getPositionAfter(self, inTime):
+        
+        if inTime == 0:
+            return self.position
+            
+     
+        willTravelDistance = self.getSpeed()*inTime
+        travelDistance = 0.0
+
+        lastCoord = Vector(self.position.X,self.position.Y)
+        for travelPoint in self.path:
+            
+            #Format to Vector            
+            travelCoords = Vector(travelPoint.X, travelPoint.Y)
+
+            #Compute stepSize and add to traveled distance
+            stepSize = lastCoord.distance(travelCoords)
+            travelDistance += stepSize
+            
+            if travelDistance > willTravelDistance:
+                fractionComplete = (travelDistance - willTravelDistance)/stepSize
+                
+                
+                #Interpolate position from lastCoord and travelCoords
+                finalPosition = Vector(0,0)
+                finalPosition.X = lastCoord.X*(1.0-fractionComplete) + travelCoords.X*fractionComplete
+                finalPosition.Y = lastCoord.Y*(1.0-fractionComplete) + travelCoords.Y*fractionComplete                
+#                print (stepSize)
+#                print ("------")
+#                print ([self.position.X, self.position.Y])
+#                print([finalPosition.X, finalPosition.Y])
+#                print (travelDistance)
+#                print (inTime)
+
+#                time.sleep(2.0)
+                return(finalPosition)
+            
+            #Update lastCoord for next loop
+            lastCoord = travelCoords
+
+        return Vector(-1,-1)
+                

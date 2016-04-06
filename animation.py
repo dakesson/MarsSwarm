@@ -164,7 +164,7 @@ while True:
         b.update(robots,positionData)
         b.display(windowSurface)
     field.time += 1
-    print(field.time)
+
     #######################################################################
     #export robot path to server
     robotPathList = []
