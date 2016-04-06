@@ -36,26 +36,8 @@ class Robot:
      
     def update(self,robots,positionData):#update robot status, this will update robot's position, orientation and path        
         self.targetFound = False
-
-        v1 = rule1(self,robots,positionData)
-        v2 = 
-
-    def rule1(self,robots):
-        pcj = Vector(0,0)
-        for robot in robots:
-            if robot != self:
-                pcj.add(robot.position)
-        pcj = pcj / (len(robots)-1)
-        return (pcj - self.position)/100
-
-    def rule2(self,robots):
-        c = Vector(0,0,0)
-
-        for robot in robots:
-            if robot != self:
-                if abs(self.position.distance())
-
-
+        self.checkSensor(robots,positionData)
+        self.getPath(robots)
     
     def checkSensor(self,robots,positionData):#check robot virtual sensors: based on the elevation of area just found, determine whether path need to be updated
         if(not self.field.simulation):#Not in simulation mode
