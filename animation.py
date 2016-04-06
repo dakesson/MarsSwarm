@@ -151,9 +151,9 @@ while True:
     #windowSurface.blit(img,(0,0))
         
     #draw target area
-    pygame.draw.circle(windowSurface, (255,127,39,0), (field.target.c.X,field.target.c.Y),field.target.r,1)
+#    pygame.draw.circle(windowSurface, (255,127,39,0), (field.target.c.X,field.target.c.Y),field.target.r,1)
     #draw loading area
-    pygame.draw.circle(windowSurface, (125,190,255,0), (field.loadingArea.c.X,field.loadingArea.c.Y),field.loadingArea.r,1)
+#    pygame.draw.circle(windowSurface, (125,190,255,0), (field.loadingArea.c.X,field.loadingArea.c.Y),field.loadingArea.r,1)
     # draw the block onto the surface
     
     #######################################################################

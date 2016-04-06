@@ -175,25 +175,26 @@ class Field:
         (grid2X,grid2Y) = grid2
         return Point(grid1X,grid1Y).distance(Point(grid2X,grid2Y))
     def calculateTargetQueue(self):
+        print("Field calculate")
         self.targetQueue = {}
-        MINIMUM_TARGET_LOADING_DISTANCE = 40
+#        MINIMUM_TARGET_LOADING_DISTANCE = 40
         for key in self.weightedGrid.elevation.keys():
             self.targetQueue[key]=self.weightedGrid.elevation[key]-self.targetGridElevation.elevation[key]
-        orderedTargetQueue = collections.OrderedDict(sorted(self.targetQueue.items(), key=lambda t: t[1]))
+#        self.orderedTargetQueue = collections.OrderedDict(sorted(self.targetQueue.items(), key=lambda t: t[1]))
         #print("Ordered queue"+str(orderedTargetQueue))
         #print("Target changed"+str(orderedTargetQueue.popitem(last=False)[0]))
         #print("Target changed"+str(orderedTargetQueue.popitem(last=True)[0]))
-        (targetInGridX,targetInGridY) = orderedTargetQueue.popitem(last=False)[0]
-        (targetInScreenX,targetInScreenY) = self.grid2Display((targetInGridX,targetInGridY))
+#        (targetInGridX,targetInGridY) = orderedTargetQueue.popitem(last=False)[0]
+#        (targetInScreenX,targetInScreenY) = self.grid2Display((targetInGridX,targetInGridY))
         
-        (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
-        for loadingCount in range(0,self.gridWidth*self.gridHeight):#if target and loading area too close, choose another loading area
-            if(abs(loadingInGridX-targetInGridX)+abs(targetInGridY-loadingInGridY)<MINIMUM_TARGET_LOADING_DISTANCE):
-                (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
-        (loadingInScreenX,loadingInScreenY) = self.grid2Display((loadingInGridX,loadingInGridY))
+ #       (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
+ #       for loadingCount in range(0,self.gridWidth*self.gridHeight):#if target and loading area too close, choose another loading area
+ #           if(abs(loadingInGridX-targetInGridX)+abs(targetInGridY-loadingInGridY)<MINIMUM_TARGET_LOADING_DISTANCE):
+ #               (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
+ #       (loadingInScreenX,loadingInScreenY) = self.grid2Display((loadingInGridX,loadingInGridY))
         
-        self.setTarget(Target(Point(targetInScreenX,targetInScreenY),self.target.r))
-        self.setLoadingArea(LoadingArea(Point(loadingInScreenX,loadingInScreenY),self.loadingArea.r))
+ #       self.setTarget(Target(Point(targetInScreenX,targetInScreenY),self.target.r))
+ #       self.setLoadingArea(LoadingArea(Point(loadingInScreenX,loadingInScreenY),self.loadingArea.r))
 
 class LoadingArea:
     def __init__(self, c, r):

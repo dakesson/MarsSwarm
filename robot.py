@@ -23,7 +23,7 @@ class Robot:
         self.targetPathGridCount = 0#index of item in self.path
         self.path = []#list of grid points, path to go
         self.pathInWorld = []#list of grid points in actual resolution       
-        self.targetInGrid = field.loadingAreaInGrid#looking for loading area first
+        self.targetInGrid = self.findTarget() #field.loadingAreaInGrid#looking for loading area first
         self.weightedGrid = GridWithWeights(self.field.gridWidth,self.field.gridHeight)   #each robot has its own map of elevation and grid has been explored     
         self.exploredGrid = {}#record explored grid, for example:{[0,0]:1,[0,1]:1}
         self.doesPathRequireUpdate = False
@@ -34,6 +34,38 @@ class Robot:
             self.weightedGrid.elevation[k]=0
         self.searchPath(self.targetInGrid)
      
+    def findTarget(self):
+
+        bestHeuristic = 999999.0
+        bestPoint = None
+        for coord, value in self.field.targetQueue.items() :
+
+            targetPoint = Point(coord[0], coord[1])
+            distance = targetPoint.distance(self.position)
+
+            if abs(value) > 0:
+                value = 1/value
+            if self.isSandloaded:
+                value = -value
+            
+            #Smaller number is better, but needs to be over 0
+            heuristic = distance * value
+            
+            if heuristic > 0 and heuristic < bestHeuristic:
+                bestPoint = targetPoint
+                bestHeuristic = heuristic
+                #Remove from que
+            
+        if bestPoint == None:
+            return None
+
+        print("find target")            
+        self.field.targetQueue.pop((bestPoint.X, bestPoint.Y), None)
+        return (bestPoint.X, bestPoint.Y)
+            
+            
+            
+            
     def update(self,robots,positionData):#update robot status, this will update robot's position, orientation and path        
         self.targetFound = False
         self.checkSensor(robots,positionData)
@@ -90,6 +122,7 @@ class Robot:
         ROBOT_CLOEST_DISTANCE = 80#equals to 80*6=480 mm in actual resolution
         COMMUNICATION_DISTANCE = 80#equals to 80*6=480 mm in actual resolution
         self.weightedGrid.walls = []#clear all walls
+        
         for robot in robots:#check robots in the robots list
             if robot.ID == self.ID:
                 continue
@@ -124,18 +157,9 @@ class Robot:
     
     def getPath(self,robots):#update robot's path
         #Need to update target?
-        if(self.isSandloaded == False):#if sand is not loaded, use loading area as target
-            if(self.targetInGrid is not self.field.loadingAreaInGrid):
-            #if(self.field.gridDistance2ScreenDistance(self.targetInGrid,self.field.loadingAreaInGrid)>self.field.loadingArea.r):
-                self.doesPathRequireUpdate = True
-                self.targetInGrid = self.field.loadingAreaInGrid
-                #print("target changed")
-        else:#if sand is loaded, if target is not target area, change target
-            if(self.targetInGrid is not self.field.targetInGrid):
-            #if(self.field.gridDistance2ScreenDistance(self.targetInGrid,self.field.targetInGrid)>self.field.target.r):                
-                self.doesPathRequireUpdate = True
-                self.targetInGrid = self.field.targetInGrid  
-                #print("target changed")          
+        
+        #self.targetInGrid = self.findTarget()
+        self.doesPathRequireUpdate = True
         
         if(self.doesPathRequireUpdate):#if found new terrain, or changed target, update path
             self.searchPath(self.targetInGrid)
@@ -160,12 +184,14 @@ class Robot:
                 self.digDip(2, 5, True)
             print("Robot"+str(self.ID)+" loaded sand.")
             self.field.calculateTargetQueue()#update elevation differences
+            self.targetInGrid = self.findTarget()
         elif(self.targetFound and (self.isSandloaded)):
             self.isSandloaded = False
             if(self.field.simulation):
                 self.digDip(2, 5, False)                    
             print("Robot"+str(self.ID)+" unloaded sand.")
             self.field.calculateTargetQueue()#update elevation differences
+            self.targetInGrid = self.findTarget()
 
     def followPath(self):#follow the current path, if reached the target, return true, else, return false
         FOUND_TARGET_DISTANCE = 5
@@ -268,6 +294,12 @@ class Robot:
         CIRCLE_RADIUS = 13
         pygame.draw.circle(windowSurface, self.color, (int(self.position.X),int(self.position.Y)),int(CIRCLE_RADIUS*2),2)
         pygame.draw.line(windowSurface, self.color,(self.position.X+self.direction.X*CIRCLE_RADIUS,self.position.Y+self.direction.Y*CIRCLE_RADIUS),(self.position.X+self.direction.X*(CIRCLE_RADIUS+VECTOR_LENGTH),self.position.Y+self.direction.Y*(CIRCLE_RADIUS+VECTOR_LENGTH)),2)
+       
+       
+        #draw target area
+        print (self.targetInGrid[0])
+        pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*10,self.targetInGrid[1]*10),self.field.loadingArea.r,1)
+
        
         #print path of the robot
         printPath = []
