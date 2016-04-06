@@ -68,7 +68,7 @@ class Robot:
         for coord, value in self.field.targetQueue.items() :
             targetPoint = Point(coord[0], coord[1])        
             distance = targetPoint.distance(bestPoint)
-            if distance < 4:
+            if distance < 7:
                 removeCoords.append((targetPoint.X, targetPoint.Y))
             
 
