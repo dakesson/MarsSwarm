@@ -60,10 +60,21 @@ class Robot:
             return None
 
         print("find target")            
+        
         self.field.targetQueue.pop((bestPoint.X, bestPoint.Y), None)
+        
+        #Remove neighbours        
+        removeCoords = []
+        for coord, value in self.field.targetQueue.items() :
+            targetPoint = Point(coord[0], coord[1])        
+            distance = targetPoint.distance(bestPoint)
+            if distance < 4:
+                removeCoords.append((targetPoint.X, targetPoint.Y))
+            
+
+        for coord in removeCoords:
+            self.field.targetQueue.pop(coord, None)    
         return (bestPoint.X, bestPoint.Y)
-            
-            
             
             
     def update(self,robots,positionData):#update robot status, this will update robot's position, orientation and path        
@@ -297,7 +308,6 @@ class Robot:
        
        
         #draw target area
-        print (self.targetInGrid[0])
         pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*10,self.targetInGrid[1]*10),self.field.loadingArea.r,1)
 
        
