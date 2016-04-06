@@ -29,7 +29,7 @@ FIELDHEIGHT = 400
 ROBOTSMAXID = 20#maximum Robot ID, tuio could misread ID patttern and give crazy ID number
 KINECT_IP = "http://192.168.0.101:8000"
 TUIO_IP = "http://192.168.0.105:8000"
-PATH_OUTPUT_FILE = 'D:/PROJECTS/0888_SG16/trunk/RhinoGh/server/apath.html'
+PATH_OUTPUT_FILE = 'apath.html'
 
 # set up the colors
 

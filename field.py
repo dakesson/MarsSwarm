@@ -113,8 +113,7 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             #key = (xy[0],xy[1])
             xy = key[1:-1].split(",")
             keyInGrid = (int(xy[0]),int(xy[1]))
-            if(keyInGrid is in robotGrid):
-                continue
+
             if(elevationJson[key]["e"]>field.distanceMax):#Minimum elevation is 0, the maximum is (field.distanceMax - field.distanceMin)/field.distanceStep
                 self.elevation[keyInGrid] = 0
             elif(elevationJson[key]["e"]<field.distanceMin):
