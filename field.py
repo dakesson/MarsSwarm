@@ -125,6 +125,17 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             return 1
         else:
             return abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            
+
+    def collisionCost(self,inTime,robot):
+        print("ok")
+        for rob in robot.field.robots:
+            if rob != self and len(rob.path) > 0:
+                print("OK")
+
+        return 0.0
+        
+        
 
     
     def neighborElevation(self, id):#find elevation near current position in a 5*5 grid
@@ -160,6 +171,8 @@ class Field:
         self.targetQueue = {}
         self.actualFieldSize2DisplayField = 6#translate from screen resolution to actual resolution
         self.simulation = False
+        self.time = 0
+        self.robots = []
         
     def setTarget(self,t):
         self.target = t
@@ -194,6 +207,7 @@ class Field:
         
         self.setTarget(Target(Point(targetInScreenX,targetInScreenY),self.target.r))
         self.setLoadingArea(LoadingArea(Point(loadingInScreenX,loadingInScreenY),self.loadingArea.r))
+
 
 class LoadingArea:
     def __init__(self, c, r):

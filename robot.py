@@ -32,7 +32,7 @@ class Robot:
         #initilize robot's elevation map
         for k,v in field.weightedGrid.elevation.items():
             self.weightedGrid.elevation[k]=0
-        self.searchPath(self.targetInGrid)
+        self.searchPath(self.targetInGrid,[])
      
     def update(self,robots,positionData):#update robot status, this will update robot's position, orientation and path        
         self.targetFound = False
@@ -138,7 +138,7 @@ class Robot:
                 #print("target changed")          
         
         if(self.doesPathRequireUpdate):#if found new terrain, or changed target, update path
-            self.searchPath(self.targetInGrid)
+            self.searchPath(self.targetInGrid,robots)
             self.targetPathGridCount = 0
             #print("Robot"+str(self.ID)+" recalculated path.")
         
@@ -192,8 +192,9 @@ class Robot:
         self.position = self.position
         self.direction = self.direction        
     
-    def searchPath(self,target):#seach path using a* algorithm based on the robot's elevation map and target location
-        came_from, cost_so_far = a_star_search(self.weightedGrid,(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), target)
+    def searchPath(self,target,robots):#seach path using a* algorithm based on the robot's elevation map and target location
+        #Changed - added current time to search
+        came_from, cost_so_far = a_star_search(self.weightedGrid,(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), target, self)
         path = reconstruct_path(came_from, start=(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), goal=target)        
         #self.pathInGrid = path
         if(path is not None):

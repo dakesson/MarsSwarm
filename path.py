@@ -105,7 +105,7 @@ def reconstruct_path(came_from, start, goal):
     
 
         
-def a_star_search(graph, start, goal):
+def a_star_search(graph, start, goal,robot):
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {}
@@ -113,6 +113,7 @@ def a_star_search(graph, start, goal):
     came_from[start] = None
     cost_so_far[start] = 0
     
+    searchDepth = 0 #Depth in the breadth first search equals to time (simplification)
     while not frontier.empty():
         current = frontier.get()
         
@@ -120,12 +121,13 @@ def a_star_search(graph, start, goal):
             break
         
         for next in graph.neighbors(current,1):
-            new_cost = cost_so_far[current] + graph.cost(current, next)
+            new_cost = cost_so_far[current] + graph.cost(current, next) + graph.collisionCost(searchDepth,robot)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost + heuristic(goal, next)
                 frontier.put(next, priority)
                 came_from[next] = current
+        searchDepth += 1
     
     return came_from, cost_so_far
 

@@ -57,8 +57,10 @@ if(field.simulation):#if in simulation mode, load elevation from image
     field.weightedGrid.getElevationFromImage("elevation_test.png",field)
     field.targetGridElevation.getElevationFromImage("target_test.png",field)
     field.calculateTargetQueue()#update elevation differences
-    for robotCount in range(0,2):
+    field.robots = robots
+    for robotCount in range(0,3):
         robots.append(Robot(robotCount,Point(400,robotCount*100+100),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
+
 
 # run the game loop
 while True:
@@ -161,6 +163,8 @@ while True:
     for b in robots:        
         b.update(robots,positionData)
         b.display(windowSurface)
+    field.time += 1
+    print(field.time)
     #######################################################################
     #export robot path to server
     robotPathList = []
