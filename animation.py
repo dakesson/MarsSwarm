@@ -58,7 +58,7 @@ if(field.simulation):#if in simulation mode, load elevation from image
     field.targetGridElevation.getElevationFromImage("target_test.png",field)
     field.calculateTargetQueue()#update elevation differences
     for robotCount in range(0,2):
-        robots.append(Robot(robotCount,Point(random.randint(0, FIELDWIDTH),random.randint(0, WINDOWHEIGHT)),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
+        robots.append(Robot(robotCount,Point(400,robotCount*100+100),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
 
 # run the game loop
 while True:
