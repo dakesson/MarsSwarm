@@ -54,6 +54,7 @@ class Robot:
         self.position = self.position + self.direction
         self.positionInGrid = (int(self.position.X/self.field.gridSize),int(self.position.Y/self.field.gridSize))
 
+    def update(self,robots,positionData,field):#update robot status, this will update robot's position, orientation and path        
         self.targetFound = False
         self.checkSensor(robots,positionData)
         self.getPath(robots)
@@ -109,7 +110,25 @@ class Robot:
         t = goal - self.position
         
         return t.div(1000)
+        self.getPath(robots,field)
     
+    def in_bounds2(self, id):
+            (x, y) = id
+            return 0 <= x < 50 and 0 <= y < 40     
+            
+    def depositScent(self):
+        if(self.isSandloaded==True):
+            self.scentpoints=[]
+            self.direction1 = [math.cos(math.pi/4)*self.direction.X-math.sin(math.pi/4)*self.direction.Y,math.sin(math.pi/4)*self.direction.X+ math.cos(math.pi/4)*self.direction.Y]
+            self.direction2 = [math.cos(math.pi/-4)*self.direction.X-math.sin(math.pi/-4)*self.direction.Y,math.sin(math.pi/-4)*self.direction.X+ math.cos(math.pi/-4)*self.direction.Y]
+            for i in [1,2,3]:        
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction1[0]),int(self.positionInGrid[1]-i*self.direction1[1])))
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction2[0]),int(self.positionInGrid[1]-i*self.direction2[1])))    
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction.X),int(self.positionInGrid[1]-i*self.direction.Y))) 
+            self.scentpoints=filter(self.in_bounds2, self.scentpoints)
+            #self.scentpoints=[x for x in self.scentpoints if SquareGrid.in_bounds(x)]
+            for i in self.scentpoints:
+                self.field.weightedGrid.scent[i]+=1
     
     def checkSensor(self,robots,positionData):#check robot virtual sensors: based on the elevation of area just found, determine whether path need to be updated
         if(not self.field.simulation):#Not in simulation mode
@@ -195,7 +214,7 @@ class Robot:
                 
                 
     
-    def getPath(self,robots):#update robot's path
+    def getPath(self,robots,field):#update robot's path
         #Need to update target?
 #        if(self.isSandloaded == False):#if sand is not loaded, use loading area as target
 #            if(self.targetInGrid is not self.field.loadingAreaInGrid):
@@ -224,6 +243,7 @@ class Robot:
             #print("Robot"+str(self.ID)+" is waiting")
         else:            
             #following the current path    
+            self.depositScent()
             self.targetFound = self.followPath()
             #print("Robot"+str(self.ID)+"follow path")
         #if target is found and sand is not loaded, loadsand
