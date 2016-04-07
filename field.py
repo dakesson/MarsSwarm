@@ -87,6 +87,18 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
         SquareGrid.__init__(self,width, height)
         self.weights = {}
         self.elevation = {}
+        self.scent = {}
+        for h in range(width):
+            for v in range(height):
+                self.scent[(h,v)]=0
+        #print(self.scent)
+    
+    def evaporateScent(self):
+        for x in range(self.width):
+            for y in range(self.height):
+                self.scent[(x,y)]= max(self.scent.get((x,y),0)-0.05,0)
+
+
         
     def getElevationFromImage(self,elevationMap,field):#get elevation from image
         im = Image.open(elevationMap)
@@ -120,17 +132,21 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
                 self.elevation[keyInGrid] = (field.distanceMax - field.distanceMin)/field.distanceStep
             else:
                 self.elevation[keyInGrid] = (field.distanceMax -elevationJson[key]["e"])/field.distanceStep
-    def cost(self, from_node, to_node, robot):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
-        cost = 0.0        
-        if(self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
-            cost = 1.0
+
+
+    def cost(self,from_node, to_node,robot):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
+        loaded = robot.isSandloaded
+        field = robot.field
+        
+        if(field.weightedGrid.scent.get(to_node,1)>0 and loaded==False): # add a cost for moving on pheromone trails
+            self.scentfactor=10
         else:
-            cost = abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            self.scentfactor=1
             
-        
-        
-        return cost
-        
+        if(self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
+            return 1*self.scentfactor
+        else:
+            return 4*abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))*self.scentfactor
 
     
     def neighborElevation(self, id):#find elevation near current position in a 5*5 grid
