@@ -143,9 +143,30 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
         else:
             self.scentfactor=1
 
+        
+        #Add cost to be close to other robots
+        #Should only be added if the to_node is close to the current position
+        
+#        toPoint = Point(to_node[0], to_node[1])
+#        neighbCost = 0.0
+#        futureDistance = toPoint.distance(robot.position)
+#
+#        if futureDistance < 100:
+#        
+#            closestRobotsDist = robot.field.gridWidth
+#            for rob in robot.field.robots:
+#                fromPoint = Point(from_node[0], from_node[1])
+#                dist = rob.position.distance(fromPoint)
+#                closestRobotsDist = min(dist, closestRobotsDist)
+#            
+#            neighbCost = 100000 / closestRobotsDist * closestRobotsDist * futureDistance
+        
+            
+            
+
             
         if  True: # (self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
-            return 1*self.scentfactor
+            return  1 +self.scentfactor
         else:
             return 4*abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))*self.scentfactor
 
@@ -184,6 +205,7 @@ class Field:
         self.actualFieldSize2DisplayField = 6#translate from screen resolution to actual resolution
         self.simulation = False
         self.busyTargets = []
+        self.robots = []
         
     def setTarget(self,t):
         self.target = t

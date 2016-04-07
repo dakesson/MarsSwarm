@@ -46,7 +46,7 @@ robotColor = [(8,133,161),(187,86,149),(231,199,31),(175,54,60),(70,148,73),(56,
 #set target and loading area
 
 gridSize = 10
-displayGridSize = 2
+displayGridSize = 5
 field = Field(FIELDWIDTH,FIELDHEIGHT,gridSize)
 field.setTarget(Target(Point(220,80),5))
 field.setLoadingArea(LoadingArea(Point(200,399),5))
@@ -58,6 +58,7 @@ if(field.simulation):#if in simulation mode, load elevation from image
     field.weightedGrid.getElevationFromImage("elevation_test.png",field)
     field.targetGridElevation.getElevationFromImage("elevation_test_target.png",field)
     field.calculateTargetQueue()#update elevation differences
+    field.robots = robots
     for robotCount in range(0,4):
         robots.append(Robot(robotCount,Point(random.randint(0, FIELDWIDTH),random.randint(0, WINDOWHEIGHT)),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
 
@@ -164,7 +165,7 @@ while True:
         for v in range(field.gridHeight):
             #scentcolormax=max(field.weightedGrid.scent,key=operator.itemgetter(1))[0]
             #scentcolor=int(field.weightedGrid.scent[(h,v)]*255/scentcolormax)
-            scentsize=int(field.weightedGrid.scent[(h,v)]/8)
+            scentsize=max(int(field.weightedGrid.scent[(h,v)]/8)-2,0)
             pygame.draw.circle(windowSurface,(255,0,0),(h*gridSize,v*gridSize),scentsize,scentsize)
     #######################################################################
     #Update robots status, robots' behavious defined in robot.py
