@@ -21,10 +21,6 @@ class Vector:
             self.Y = 0
         return self
     ##rotate vector counter clockwise
-    def normalize(self):
-        totSum = self.X**2 + self.Y**2
-        self.X = self.X / totSum
-        self.X = self.Y / totSum        
     def rotate(self,r):
         self.X = self.X*math.cos(r)-self.Y*math.sin(r)        
         self.Y = self.X*math.sin(r)+self.Y*math.cos(r)        
@@ -35,9 +31,6 @@ class Vector:
         sinang = la.norm(np.cross([self.X,self.Y], [v1.X,v1.Y]))
         return np.arctan2(sinang, cosang)
     
-    def distance(self,b):
-        return math.sqrt(math.pow(self.X-b.X,2)+math.pow(self.Y-b.Y,2))
-        
     def __add__(self,other):
         return Vector(self.X + other.X, self.Y + other.Y)
     
@@ -46,7 +39,7 @@ class Vector:
     
     def __mul__(self, scalar):
         return Point(self.X*scalar, self.Y*scalar)
-    def div(self, scalar):
+    def __div__(self, scalar):
         return Point(self.X/scalar, self.Y/scalar)
     def __len__(self):
         return round(math.sqrt(self.X**2 + self.Y**2))
@@ -61,13 +54,6 @@ class Point:
         return math.sqrt(math.pow(self.X-b.X,2)+math.pow(self.Y-b.Y,2))
     def get(self):
         return (self.X, self.Y)
-    def div(self, scalar):
-        return Point(self.X/scalar, self.Y/scalar)        
-    def __sub__(self,other):
-        return Vector(self.X - other.X, self.Y - other.Y)
-    def __add__(self,other):
-        return Vector(self.X + other.X, self.Y + other.Y)
-        
    
 class SquareGrid:#walls are not used. Simply use elevation to generate cost for moving
     def __init__(self, width, height):
@@ -127,19 +113,24 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             #key = (xy[0],xy[1])
             xy = key[1:-1].split(",")
             keyInGrid = (int(xy[0]),int(xy[1]))
-#            if(keyInGrid is in robotGrid):
-#                continue
+
             if(elevationJson[key]["e"]>field.distanceMax):#Minimum elevation is 0, the maximum is (field.distanceMax - field.distanceMin)/field.distanceStep
                 self.elevation[keyInGrid] = 0
             elif(elevationJson[key]["e"]<field.distanceMin):
                 self.elevation[keyInGrid] = (field.distanceMax - field.distanceMin)/field.distanceStep
             else:
                 self.elevation[keyInGrid] = (field.distanceMax -elevationJson[key]["e"])/field.distanceStep
-    def cost(self, from_node, to_node):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
+    def cost(self, from_node, to_node, robot):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
+        cost = 0.0        
         if(self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
-            return 1
+            cost = 1.0
         else:
-            return abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            cost = abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            
+        
+        
+        return cost
+        
 
     
     def neighborElevation(self, id):#find elevation near current position in a 5*5 grid
@@ -175,6 +166,7 @@ class Field:
         self.targetQueue = {}
         self.actualFieldSize2DisplayField = 6#translate from screen resolution to actual resolution
         self.simulation = False
+        self.busyTargets = []
         
     def setTarget(self,t):
         self.target = t
@@ -190,25 +182,26 @@ class Field:
         (grid2X,grid2Y) = grid2
         return Point(grid1X,grid1Y).distance(Point(grid2X,grid2Y))
     def calculateTargetQueue(self):
+        print("Field calculate")
         self.targetQueue = {}
-        MINIMUM_TARGET_LOADING_DISTANCE = 40
+#        MINIMUM_TARGET_LOADING_DISTANCE = 40
         for key in self.weightedGrid.elevation.keys():
             self.targetQueue[key]=self.weightedGrid.elevation[key]-self.targetGridElevation.elevation[key]
-        orderedTargetQueue = collections.OrderedDict(sorted(self.targetQueue.items(), key=lambda t: t[1]))
+#        self.orderedTargetQueue = collections.OrderedDict(sorted(self.targetQueue.items(), key=lambda t: t[1]))
         #print("Ordered queue"+str(orderedTargetQueue))
         #print("Target changed"+str(orderedTargetQueue.popitem(last=False)[0]))
         #print("Target changed"+str(orderedTargetQueue.popitem(last=True)[0]))
-        (targetInGridX,targetInGridY) = orderedTargetQueue.popitem(last=False)[0]
-        (targetInScreenX,targetInScreenY) = self.grid2Display((targetInGridX,targetInGridY))
+#        (targetInGridX,targetInGridY) = orderedTargetQueue.popitem(last=False)[0]
+#        (targetInScreenX,targetInScreenY) = self.grid2Display((targetInGridX,targetInGridY))
         
-        (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
-        for loadingCount in range(0,self.gridWidth*self.gridHeight):#if target and loading area too close, choose another loading area
-            if(abs(loadingInGridX-targetInGridX)+abs(targetInGridY-loadingInGridY)<MINIMUM_TARGET_LOADING_DISTANCE):
-                (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
-        (loadingInScreenX,loadingInScreenY) = self.grid2Display((loadingInGridX,loadingInGridY))
+ #       (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
+ #       for loadingCount in range(0,self.gridWidth*self.gridHeight):#if target and loading area too close, choose another loading area
+ #           if(abs(loadingInGridX-targetInGridX)+abs(targetInGridY-loadingInGridY)<MINIMUM_TARGET_LOADING_DISTANCE):
+ #               (loadingInGridX,loadingInGridY) = orderedTargetQueue.popitem(last=True)[0]
+ #       (loadingInScreenX,loadingInScreenY) = self.grid2Display((loadingInGridX,loadingInGridY))
         
-        self.setTarget(Target(Point(targetInScreenX,targetInScreenY),self.target.r))
-        self.setLoadingArea(LoadingArea(Point(loadingInScreenX,loadingInScreenY),self.loadingArea.r))
+ #       self.setTarget(Target(Point(targetInScreenX,targetInScreenY),self.target.r))
+ #       self.setLoadingArea(LoadingArea(Point(loadingInScreenX,loadingInScreenY),self.loadingArea.r))
 
 class LoadingArea:
     def __init__(self, c, r):
@@ -219,6 +212,3 @@ class Target:
     def __init__(self, c, r):
         self.c = c
         self.r = r
-        
-def vectorDistance(v1,v2):
-    return math.sqrt(math.pow(v1.X-v2.X,2)+math.pow(v1.Y-v2.Y,2))         
