@@ -14,6 +14,7 @@ from path import *
 from urllib.request import urlopen
 import json
 
+import operator
 
 #test 
 # set up pygame
@@ -73,10 +74,9 @@ while True:
     
     #draw window spliter
     pygame.draw.line(windowSurface, BLACK, (FIELDWIDTH,0),(FIELDWIDTH,FIELDHEIGHT),2)
-    #---------------------------------------------------------------------#
-    #---------------------------------------------------------------------#
+
     if(not field.simulation):
-        #######################################################################
+
         #update global elevaltion stored in field.weightedGrid.elevation
         #link = "http://192.168.0.101:8000" # for later over wifi
         try:
@@ -96,8 +96,7 @@ while True:
             elevationData = previousElevationData
             print("Elevation html reading failed.")
         field.weightedGrid.getElevationJson(field,robots,elevationData)
-        ##########################################################################
-        #######################################################################
+
         #add robots
         try:
             previousPositionData = positionData
@@ -156,6 +155,17 @@ while True:
 #    pygame.draw.circle(windowSurface, (125,190,255,0), (field.loadingArea.c.X,field.loadingArea.c.Y),field.loadingArea.r,1)
     # draw the block onto the surface
     
+	
+	## insert this into animation.py
+	# evaporate scent
+    field.weightedGrid.evaporateScent()
+	# draw pheromones
+    for h in range(field.gridWidth):
+        for v in range(field.gridHeight):
+            #scentcolormax=max(field.weightedGrid.scent,key=operator.itemgetter(1))[0]
+            #scentcolor=int(field.weightedGrid.scent[(h,v)]*255/scentcolormax)
+            scentsize=int(field.weightedGrid.scent[(h,v)]/8)
+            pygame.draw.circle(windowSurface,(255,0,0),(h*gridSize,v*gridSize),scentsize,scentsize)
     #######################################################################
     #Update robots status, robots' behavious defined in robot.py
     for b in robots:        
@@ -196,4 +206,4 @@ while True:
     ##########################################################################
     # draw the window onto the screen
     pygame.display.update()
-    time.sleep(0.0001)
+#    time.sleep(0.0001)
