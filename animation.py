@@ -152,6 +152,15 @@ while True:
         
     # draw the block onto the surface
     
+    field.weightedGrid.evaporateScent()
+	# draw pheromones
+    for h in range(field.gridWidth):
+        for v in range(field.gridHeight):
+            #scentcolormax=max(field.weightedGrid.scent,key=operator.itemgetter(1))[0]
+            #scentcolor=int(field.weightedGrid.scent[(h,v)]*255/scentcolormax)
+            scentsize=max(int(field.weightedGrid.scent[(h,v)]/8),0)
+            #pygame.draw.circle(windowSurface,(255,0,0),(h*gridSize,v*gridSize),scentsize,scentsize)
+            
     #######################################################################
     #Update robots status, robots' behavious defined in robot.py
     for b in robots:        

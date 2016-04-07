@@ -32,7 +32,7 @@ class Robot:
         #initilize robot's elevation map
         for k,v in field.weightedGrid.elevation.items():
             self.weightedGrid.elevation[k]=0
-        
+        self.nrMovesAction = 0 #Distance since dug or dip
         #self.searchPath(self.targetInGrid)
      
      
@@ -52,8 +52,11 @@ class Robot:
         #v3 = self.rule3(robots)
         v4 = self.rule4()
         v5 = self.rule5()
+        v6 = self.rule6()
+        
         #Keep velocity constant
-        self.direction = self.direction +v2 +v4 + v5
+        self.direction = self.direction +v2 +v4 + v5 #+ v6
+
         
         #Check if this is a good position to gid or dip material
         self.digOrDip()
@@ -68,16 +71,26 @@ class Robot:
 
         self.targetFound = False
         self.checkSensor(robots,positionData)
+        
+        self.nrMovesAction += 1
+        
+        if self.nrMovesAction > 80:
+            self.depositScent()
+        
 #        self.getPath(robots)
 
     def digOrDip(self):
+        
+        if self.nrMovesAction < 80:
+            return
+            
         #Check two positions (upper-left and lower-right)
         xPos = int(self.position.X / self.field.gridSize )
         yPos = int(self.position.Y / self.field.gridSize )        
         localPos = Vector(xPos,yPos)
         
-        pos1 = localPos + Vector(-5,-5)
-        pos2 = localPos + Vector(5,5)        
+        pos1 = localPos + Vector(-3,-3)
+        pos2 = localPos + Vector(3,3)        
 
         mPos = self.field.targetQueue.get((localPos.X,localPos.Y))
         mPos1 = self.field.targetQueue.get((pos1.X,pos1.Y))
@@ -93,12 +106,14 @@ class Robot:
             mPos2 = 0.0            
             
         if self.isSandloaded:
-            if mPos < 0:
+            if mPos1 < 0.0 and mPos2 < 0.0:
                 print("Deposit!")
+                self.nrMovesAction = 0
                 self.digDip(2, 5, False)
         else:
-            if mPos > 0 and mPos2 > 0:
+            if mPos > 0.0:
                 print("Dig!")
+                self.nrMovesAction = 0
                 self.digDip(2, 5, True)                
                 
         
@@ -159,8 +174,43 @@ class Robot:
         t = goal - self.position
         
         return t.div(1000)
+        
+    def rule6(self):
+        #Rule 2: Boids try to avoid scent (obstacles)
+        if self.isSandloaded:
+            return Vector(0,0)
+            
+        c = Vector(0,0)
+
+        for h in range(50):
+             for v in range(40):
+                 if self.field.weightedGrid.scent[(h,v)] > 0.0:
+                     scentPoint = Point(h*self.field.gridSize, v*self.field.gridSize)
     
+                     if self.position.distance(scentPoint) < 40: #Distance between bots
+                        c = c - (scentPoint - self.position)
+
+        return c.div(120)
+        
+        
+    def in_bounds2(self, id):
+            (x, y) = id
+            return 0 <= x < 50 and 0 <= y < 40        
     
+    def depositScent(self):
+        if(self.isSandloaded==True):
+            self.scentpoints=[]
+            self.direction1 = [math.cos(math.pi/4)*self.direction.X-math.sin(math.pi/4)*self.direction.Y,math.sin(math.pi/4)*self.direction.X+ math.cos(math.pi/4)*self.direction.Y]
+            self.direction2 = [math.cos(math.pi/-4)*self.direction.X-math.sin(math.pi/-4)*self.direction.Y,math.sin(math.pi/-4)*self.direction.X+ math.cos(math.pi/-4)*self.direction.Y]
+            for i in [1,2,3]:        
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction1[0]),int(self.positionInGrid[1]-i*self.direction1[1])))
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction2[0]),int(self.positionInGrid[1]-i*self.direction2[1])))    
+                self.scentpoints.append((int(self.positionInGrid[0]-i*self.direction.X),int(self.positionInGrid[1]-i*self.direction.Y))) 
+            self.scentpoints=filter(self.in_bounds2, self.scentpoints)
+            #self.scentpoints=[x for x in self.scentpoints if SquareGrid.in_bounds(x)]
+            for i in self.scentpoints:
+                self.field.weightedGrid.scent[i]+=1
+                
     def checkSensor(self,robots,positionData):#check robot virtual sensors: based on the elevation of area just found, determine whether path need to be updated
         if(not self.field.simulation):#Not in simulation mode
             ROBOT_SHIFT_TOLERANCE = 10

@@ -101,6 +101,15 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
         SquareGrid.__init__(self,width, height)
         self.weights = {}
         self.elevation = {}
+        self.scent = {}
+        for h in range(width):
+            for v in range(height):
+                self.scent[(h,v)]=0
+                
+    def evaporateScent(self):
+            for x in range(self.width):
+                for y in range(self.height):
+                    self.scent[(x,y)]= max(self.scent.get((x,y),0)-0.05,0)
         
     def getElevationFromImage(self,elevationMap,field):#get elevation from image
         im = Image.open(elevationMap)
