@@ -44,7 +44,7 @@ def draw_grid(graph, width=2, **style):
     for y in range(graph.height):
         for x in range(graph.width):
             print("%%-%ds" % width % draw_tile(graph, (x, y), style, width),end="")
-        print()
+        #print()
         
 
         

@@ -23,7 +23,7 @@ class Robot:
         self.targetPathGridCount = 0#index of item in self.path
         self.path = []#list of grid points, path to go
         self.pathInWorld = []#list of grid points in actual resolution       
-        self.targetInGrid = field.loadingAreaInGrid#looking for loading area first
+        self.targetInGrid = self.getTarget()#looking for loading area first
         self.weightedGrid = GridWithWeights(self.field.gridWidth,self.field.gridHeight)   #each robot has its own map of elevation and grid has been explored     
         self.exploredGrid = {}#record explored grid, for example:{[0,0]:1,[0,1]:1}
         self.doesPathRequireUpdate = False
@@ -35,16 +35,28 @@ class Robot:
         
         #self.searchPath(self.targetInGrid)
      
+     
+    def getTarget(self):
+        orderedTargetQueue = collections.OrderedDict(sorted(self.field.targetQueue.items(), key=lambda t: t[1]))
+        
+        if self.isSandloaded:
+            return orderedTargetQueue.popitem(last=False)[0]
+        else :
+            return orderedTargetQueue.popitem(last=True)[0]
+        
     def update(self,robots,positionData):#update robot status, this will update robot's position, orientation and path        
         self.targetFound = False
 
-        v1 = self.rule1(robots)
+        #v1 = self.rule1(robots)
         v2 = self.rule2(robots)
-        v3 = self.rule3(robots)
+        #v3 = self.rule3(robots)
         v4 = self.rule4()
         v5 = self.rule5()
         #Keep velocity constant
-        self.direction = self.direction + v2 + v4 + v5
+        self.direction = self.direction +v2 +v4 + v5
+        
+        #Check if this is a good position to gid or dip material
+        self.digOrDip()
 
 
         directionSum = math.sqrt(self.direction.X**2 + self.direction.Y**2)
@@ -56,7 +68,42 @@ class Robot:
 
         self.targetFound = False
         self.checkSensor(robots,positionData)
-        self.getPath(robots)
+#        self.getPath(robots)
+
+    def digOrDip(self):
+        #Check two positions (upper-left and lower-right)
+        xPos = int(self.position.X / self.field.gridSize )
+        yPos = int(self.position.Y / self.field.gridSize )        
+        localPos = Vector(xPos,yPos)
+        
+        pos1 = localPos + Vector(-5,-5)
+        pos2 = localPos + Vector(5,5)        
+
+        mPos = self.field.targetQueue.get((localPos.X,localPos.Y))
+        mPos1 = self.field.targetQueue.get((pos1.X,pos1.Y))
+        mPos2 = self.field.targetQueue.get((pos2.X,pos2.Y))        
+
+        if mPos == None:
+            mPos = 0.0
+
+        if mPos1 == None:
+            mPos1 = 0.0
+
+        if mPos2 == None:
+            mPos2 = 0.0            
+            
+        if self.isSandloaded:
+            if mPos < 0:
+                print("Deposit!")
+                self.digDip(2, 5, False)
+        else:
+            if mPos > 0 and mPos2 > 0:
+                print("Dig!")
+                self.digDip(2, 5, True)                
+                
+        
+            
+            
 
     def rule1(self,robots):
         #Rule 1: Boids try to fly towards the centre of mass of neighbouring boids.
@@ -64,7 +111,7 @@ class Robot:
         for robot in robots:
             if robot != self and self.position.distance(robot.position) < 80:
                 pcj + robot.position
-        pcj = pcj.div(len(robots) - 1)
+        pcj = pcj.div(len(robots)  - 1)
         
         return (pcj - self.position).div(100000)
 
@@ -76,7 +123,10 @@ class Robot:
             if robot != self:
                 if vectorDistance(self.position, robot.position) < 60: #Distance between bots
                     c = c - (robot.position - self.position)
-        return c.div(60)
+        if self.isSandloaded:
+            return c.div(120)
+        else:
+            return c.div(30)
 
     def rule3(self, robots):
         # Boids try to match velocity with near boids.
@@ -105,7 +155,7 @@ class Robot:
         
     def rule5(self):
         #Tendency to move to a certain certain area
-        goal = Vector(50,50)
+        goal = Vector(self.targetInGrid[0]*self.field.gridSize, self.targetInGrid[1]*self.field.gridSize)
         t = goal - self.position
         
         return t.div(1000)
@@ -129,7 +179,7 @@ class Robot:
         
         else:#simulation mode            
             self.doesPathRequireUpdate = self.updateExploredArea()
-            print("Robot"+str(self.field.weightedGrid.elevation))
+#            print("Robot"+str(self.field.weightedGrid.elevation))
         #make decision whether it need to dig or deposit, this is based on there factors:
         #(1)if robot is in a certain range to the deposit location/dig location
         #(2)if the difference from current elevation to target elevation is big enough
@@ -233,13 +283,14 @@ class Robot:
                 self.digDip(2, 5, True)
             print("Robot"+str(self.ID)+" loaded sand.")
             self.field.calculateTargetQueue()#update elevation differences
+            self.targetInGrid = self.getTarget()
         elif(self.targetFound and (self.isSandloaded)):
             self.isSandloaded = False
             if(self.field.simulation):
                 self.digDip(2, 5, False)                    
             print("Robot"+str(self.ID)+" unloaded sand.")
             self.field.calculateTargetQueue()#update elevation differences
-
+            self.targetInGrid = self.getTarget()
     def followPath(self):#follow the current path, if reached the target, return true, else, return false
         FOUND_TARGET_DISTANCE = 5
         if(not self.path):#if path is not available
@@ -286,7 +337,7 @@ class Robot:
             
         
     def updateExploredArea(self):# return true or false on whether it is needed to update path
-        print("Exploriong")
+        #print("Exploriong")
         ELEVATION_DIFFERENCE_THRESHOLD = 5
         #get elevation and grid for the area just explored (area around the robot)
         neighborGrid, neighborGridElevation = self.field.weightedGrid.neighborElevation(self.positionInGrid)
@@ -325,7 +376,11 @@ class Robot:
                 self.field.weightedGrid.elevation[gridPosition] = max(0,self.weightedGrid.elevation[gridPosition]-depth)
             else:
                 self.field.weightedGrid.elevation[gridPosition] = min(self.field.maxElevation,self.weightedGrid.elevation[gridPosition]+depth)
-                
+            
+            self.isSandloaded = digOrDip
+            self.field.calculateTargetQueue()#update elevation differences
+            self.targetInGrid = self.getTarget()
+
    #this function is for simulator only, the current status of the robot is displayed with pygame
     def display(self,windowSurface):
         BLACK = (0, 0, 0)
@@ -344,6 +399,10 @@ class Robot:
         pygame.draw.circle(windowSurface, self.color, (int(self.position.X),int(self.position.Y)),int(CIRCLE_RADIUS*2),2)
         pygame.draw.line(windowSurface, self.color,(self.position.X+self.direction.X*CIRCLE_RADIUS,self.position.Y+self.direction.Y*CIRCLE_RADIUS),(self.position.X+self.direction.X*(CIRCLE_RADIUS+VECTOR_LENGTH),self.position.Y+self.direction.Y*(CIRCLE_RADIUS+VECTOR_LENGTH)),2)
        
+        #Draw target pos  
+        pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*10,self.targetInGrid[1]*10),3,1)
+        pygame.draw.circle(windowSurface, self.color, (self.targetInGrid[0]*self.field.gridSize,self.targetInGrid[1]*self.field.gridSize),2,1)
+           
         #print path of the robot
         printPath = []
         for pathCount in range(0, len(self.path)):

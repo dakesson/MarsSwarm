@@ -57,7 +57,7 @@ if(field.simulation):#if in simulation mode, load elevation from image
     field.weightedGrid.getElevationFromImage("elevation_test.png",field)
     field.targetGridElevation.getElevationFromImage("target_test.png",field)
     field.calculateTargetQueue()#update elevation differences
-    for robotCount in range(0,8):
+    for robotCount in range(0,4):
         robots.append(Robot(robotCount,Point(random.randint(0, FIELDWIDTH),random.randint(0, WINDOWHEIGHT)),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))
 
 # run the game loop
@@ -150,10 +150,6 @@ while True:
     #img=pygame.image.load("landscape.png") 
     #windowSurface.blit(img,(0,0))
         
-    #draw target area
-    pygame.draw.circle(windowSurface, (255,127,39,0), (field.target.c.X,field.target.c.Y),field.target.r,1)
-    #draw loading area
-    pygame.draw.circle(windowSurface, (125,190,255,0), (field.loadingArea.c.X,field.loadingArea.c.Y),field.loadingArea.r,1)
     # draw the block onto the surface
     
     #######################################################################
@@ -196,4 +192,4 @@ while True:
     ##########################################################################
     # draw the window onto the screen
     pygame.display.update()
-    time.sleep(0.0001)
+    time.sleep(0.01)
