@@ -120,11 +120,17 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
                 self.elevation[keyInGrid] = (field.distanceMax - field.distanceMin)/field.distanceStep
             else:
                 self.elevation[keyInGrid] = (field.distanceMax -elevationJson[key]["e"])/field.distanceStep
-    def cost(self, from_node, to_node):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
+    def cost(self, from_node, to_node, robot):#cost moving on flat surface is 1 per grid. Cost on tilted surface is the difference between elevations
+        cost = 0.0        
         if(self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
-            return 1
+            cost = 1.0
         else:
-            return abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            cost = abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))
+            
+        
+        
+        return cost
+        
 
     
     def neighborElevation(self, id):#find elevation near current position in a 5*5 grid

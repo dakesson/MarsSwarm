@@ -239,7 +239,7 @@ class Robot:
         self.direction = self.direction        
     
     def searchPath(self,target):#seach path using a* algorithm based on the robot's elevation map and target location
-        came_from, cost_so_far = a_star_search(self.weightedGrid,(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), target)
+        came_from, cost_so_far = a_star_search(self.weightedGrid,(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), target, self)
         path = reconstruct_path(came_from, start=(int(self.position.X/self.field.gridSize), int(self.position.Y/self.field.gridSize)), goal=target)        
         #self.pathInGrid = path
         if(path is not None):
