@@ -142,8 +142,9 @@ class GridWithWeights(SquareGrid):#use elevation to generate cost for moving
             self.scentfactor=10
         else:
             self.scentfactor=1
+
             
-        if(self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
+        if  True: # (self.elevation.get(to_node, 1)==self.elevation.get(from_node, 1)):
             return 1*self.scentfactor
         else:
             return 4*abs(self.elevation.get(to_node, 1)-self.elevation.get(from_node, 1))*self.scentfactor

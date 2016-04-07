@@ -56,7 +56,7 @@ field.simulation = True
 robots = []
 if(field.simulation):#if in simulation mode, load elevation from image
     field.weightedGrid.getElevationFromImage("elevation_test.png",field)
-    field.targetGridElevation.getElevationFromImage("target_test.png",field)
+    field.targetGridElevation.getElevationFromImage("elevation_test_target.png",field)
     field.calculateTargetQueue()#update elevation differences
     for robotCount in range(0,4):
         robots.append(Robot(robotCount,Point(random.randint(0, FIELDWIDTH),random.randint(0, WINDOWHEIGHT)),Vector(2*random.random()-1,2*random.random()-1),field,robotColor[robotCount]))

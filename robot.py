@@ -43,13 +43,27 @@ class Robot:
             targetPoint = Point(coord[0], coord[1])
             distance = targetPoint.distance(self.position)
 
-            if abs(value) > 0:
-                value = 1/value
+            acumulatedValue = 0.0
+            for xi in range(1,self.field.gridSize):
+                for yi in range(1,self.field.gridSize):
+                    xCoordCheck = coord[0]-self.field.gridSize/2+xi
+                    yCoordCheck = coord[1]-self.field.gridSize/2+yi
+                    
+                    checkPoint = (xCoordCheck, yCoordCheck)
+                    pointValue = self.field.targetQueue.get(checkPoint)
+                    
+                    if pointValue == None:
+                        continue
+                    
+                    acumulatedValue += pointValue
+
             if self.isSandloaded:
-                value = -value
+                acumulatedValue = -acumulatedValue
+                
+            if acumulatedValue != 0:
+                acumulatedValue = 1/acumulatedValue
             
-            if value <= 0:
-                continue
+
             
             closestPointDistance = 999999.0
             for busyPoint in self.field.busyTargets:
@@ -61,17 +75,22 @@ class Robot:
             if closestPointDistance == 0:
                 closestPointDistance = 0.1
                     
-            
+
             #Smaller number is better, but needs to be over 0
 
             h1 = distance/self.field.gridWidth #Distance heuristic
-            h2 = value*100
+            h2 = acumulatedValue * 5000
             h3 = 10.0 / closestPointDistance
             
-            print('{0:2f} {1:2f} {2:2f}'.format(h1, h2, h3))
+            
+
+            #print('{0:2f} {1:2f} {2:2f}'.format(h1, h2, h3))
             #print('h1 (dist) %0.2f h2 (material) %0.2f h3 (crowded) %0.2f' % h1,h2,h3)
             
-            heuristic = h1 + h2 +h3
+            if h2 < 0.1:
+                heuristic = 0.0
+            else:
+                heuristic = h1 + h2 +h3
             
             if heuristic > 0 and heuristic < bestHeuristic:
                 bestPoint = targetPoint
